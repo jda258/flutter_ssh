@@ -39,6 +39,8 @@
            withUsername:args[@"username"]
           passwordOrKey:args[@"passwordOrKey"]
                 withKey:args[@"id"] result:result];
+  } else if ([@"isConnected" isEqualToString:call.method]) {
+    [self isConnected:args[@"id"] result:result];
   } else if ([@"execute" isEqualToString:call.method]) {
     [self execute:args[@"cmd"] withKey:args[@"id"] result:result];
   } else if ([@"startShell" isEqualToString:call.method]) {
@@ -89,15 +91,23 @@
   return [[self clientPool] objectForKey:key];
 }
 
-- (BOOL)isConnected:(NMSSHSession *)session
+- (BOOL)isConnected:(nonnull NSString*)key
              result:(FlutterResult)result {
-  if (session && session.isConnected && session.isAuthorized) {
-    return true;
-  } else {
-    NSLog(@"Session not connected");
-    result([FlutterError errorWithCode:@"connection_failure" message:@"No connected session" details:nil]);
-    return false;
+  NSLog(@"Checking if client is connected");
+  SSHClient* client = [self clientForKey:key];
+  if (client) {
+    NSLog(@"Client is not null");
+    NMSSHSession* session = client._session;
+
+    if (session && session.isConnected && session.isAuthorized) {
+      NSLog(@"Session is connected and authorized");
+      result(@"true");
+      return true;
+    }
   }
+  NSLog(@"Session not connected");
+  result(@"false");
+  return false;
 }
 
 - (BOOL)isSFTPConnected:(NMSFTP *)sftpSesion
@@ -157,17 +167,23 @@
   SSHClient* client = [self clientForKey:key];
   if (client) {
     NMSSHSession* session = client._session;
-    if ([self isConnected:session result:result]) {
-      dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        NSError* error = nil;
-        NSString* response = [session.channel execute:command error:&error timeout:@10];
-        if (error) {
-          NSLog(@"Error executing command: %@", error);
-          result([error flutterError]);
-        } else {
-          result(response);
-        }
-      });
+    if (session && session.isConnected) {
+      if (session.isAuthorized) {
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+          NSError* error = nil;
+          NSString* response = [session.channel execute:command error:&error timeout:@10];
+          if (error) {
+            NSLog(@"Error executing command: %@", error);
+            result([error flutterError]);
+          } else {
+            result(response);
+          }
+        });
+      } else {
+        result([FlutterError errorWithCode:@"connection_failure" message:@"No connected session" details:nil]);
+      }
+    } else {
+      result([FlutterError errorWithCode:@"connection_failure" message:@"No connected session" details:nil]);
     }
   } else {
     result([FlutterError errorWithCode:@"unknown_client" message:@"Unknown client" details:nil]);
@@ -209,7 +225,7 @@
                result:(FlutterResult)result {
   SSHClient* client = [self clientForKey:key];
   if (client) {
-    if ([self isConnected:client._session result:result]) {
+    if ([self isConnected:key result:result]) {
       dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         NSError* error = nil;
         [client._session.channel write:command error:&error timeout:@10];
@@ -231,7 +247,7 @@
               result:(FlutterResult)result {
   SSHClient* client = [self clientForKey:key];
   if (client) {
-    if ([self isConnected:client._session result:result]) {
+    if ([self isConnected:key result:result]) {
       dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         NMSFTP* sftpSession = [NMSFTP connectWithSession:client._session];
         if (sftpSession) {
@@ -253,7 +269,7 @@
          result:(FlutterResult)result {
   SSHClient* client = [self clientForKey:key];
   if (client) {
-    if ([self isConnected:client._session result:result] &&
+    if ([self isConnected:key result:result] &&
         [self isSFTPConnected:client._sftpSession result:result]) {
       
       dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
@@ -294,7 +310,7 @@
             result:(FlutterResult)result {
   SSHClient* client = [self clientForKey:key];
   if (client) {
-    if ([self isConnected:client._session result:result] &&
+    if ([self isConnected:key result:result] &&
         [self isSFTPConnected:client._sftpSession result:result]) {
       if ([client._sftpSession moveItemAtPath:oldPath toPath:newPath]) {
         NSLog(@"rename success");
@@ -315,7 +331,7 @@
             result:(FlutterResult)result {
   SSHClient* client = [self clientForKey:key];
   if (client) {
-    if ([self isConnected:client._session result:result] &&
+    if ([self isConnected:key result:result] &&
         [self isSFTPConnected:client._sftpSession result:result]) {
       if([client._sftpSession createDirectoryAtPath:path]) {
         NSLog(@"mkdir success");
@@ -336,7 +352,7 @@
          result:(FlutterResult)result {
   SSHClient* client = [self clientForKey:key];
   if (client) {
-    if ([self isConnected:client._session result:result] &&
+    if ([self isConnected:key result:result] &&
         [self isSFTPConnected:client._sftpSession result:result]) {
       if([client._sftpSession removeFileAtPath:path]) {
         NSLog(@"rm success");
@@ -357,7 +373,7 @@
             result:(FlutterResult)result {
   SSHClient* client = [self clientForKey:key];
   if (client) {
-    if ([self isConnected:client._session result:result] &&
+    if ([self isConnected:key result:result] &&
         [self isSFTPConnected:client._sftpSession result:result]) {
       if([client._sftpSession removeDirectoryAtPath:path]) {
         NSLog(@"rmdir success");
@@ -379,7 +395,7 @@
                result:(FlutterResult)result{
   SSHClient* client = [self clientForKey:key];
   if (client) {
-    if ([self isConnected:client._session result:result] &&
+    if ([self isConnected:key result:result] &&
         [self isSFTPConnected:client._sftpSession result:result]) {
       NSString* filePath = [NSString stringWithFormat:@"%@/%@", toPath, [path lastPathComponent]];
 
@@ -407,7 +423,7 @@
              result:(FlutterResult)result {
   SSHClient* client = [self clientForKey:key];
   if (client) {
-    if ([self isConnected:client._session result:result] &&
+    if ([self isConnected:key result:result] &&
         [self isSFTPConnected:client._sftpSession result:result]) {
       dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         client.delegate = self;
