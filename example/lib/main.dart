@@ -14,20 +14,24 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   String _result = '';
-  List _array;
+  List _array = [];
+
+  final ButtonStyle buttonStyle = TextButton.styleFrom(
+    backgroundColor: Colors.blue
+  );
 
   Future<void> onClickCmd() async {
     var client = new SSHClient(
-      host: "my.sshtest",
+      host: "hostname",
       port: 22,
-      username: "sha",
-      passwordOrKey: "Password01.",
+      username: "username",
+      passwordOrKey: "password",
     );
 
-    String result;
+    String result = '';
     try {
-      result = await client.connect();
-      if (result == "session_connected") result = await client.execute("ps");
+      result = (await client.connect())!;
+      if (result == "session_connected") result = (await client.execute("ps"))!;
       client.disconnect();
     } on PlatformException catch (e) {
       print('Error: ${e.code}\nError Message: ${e.message}');
@@ -35,15 +39,15 @@ class _MyAppState extends State<MyApp> {
 
     setState(() {
       _result = result;
-      _array = null;
+      _array = [];
     });
   }
 
   Future<void> onClickShell() async {
     var client = new SSHClient(
-      host: "my.sshtest",
+      host: "hostname",
       port: 22,
-      username: "sha",
+      username: "username",
       passwordOrKey: {
         "privateKey": """-----BEGIN RSA PRIVATE KEY-----
 MIIEpAIBAAKCAQEA2DdFSeWG8wOHddRpOhf4FRqksJITr59iXdNrXq+n79QFN1g4
@@ -77,26 +81,26 @@ pFkz72+8eA2cnbWUqHt9WqMUgUBYZTMESzQrTf7+q+0gWf49AZJ/QQ==
 
     setState(() {
       _result = "";
-      _array = null;
+      _array = [];
     });
 
     try {
-      String result = await client.connect();
+      String result = (await client.connect())!;
       if (result == "session_connected") {
-        result = await client.startShell(
+        result = (await client.startShell(
             ptyType: "xterm",
             callback: (dynamic res) {
               setState(() {
                 _result += res;
               });
-            });
+            }))!;
 
         if (result == "shell_started") {
           print(await client.writeToShell("echo hello > world\n"));
           print(await client.writeToShell("cat world\n"));
           new Future.delayed(
             const Duration(seconds: 5),
-            () async => await client.closeShell(),
+                () async => await client.closeShell(),
           );
         }
       }
@@ -107,21 +111,21 @@ pFkz72+8eA2cnbWUqHt9WqMUgUBYZTMESzQrTf7+q+0gWf49AZJ/QQ==
 
   Future<void> onClickSFTP() async {
     var client = new SSHClient(
-      host: "my.sshtest",
+      host: "hostname",
       port: 22,
-      username: "sha",
-      passwordOrKey: "Password01.",
+      username: "username",
+      passwordOrKey: "password",
     );
 
     try {
-      String result = await client.connect();
+      String result = (await client.connect())!;
       if (result == "session_connected") {
-        result = await client.connectSFTP();
+        result = (await client.connectSFTP())!;
         if (result == "sftp_connected") {
           var array = await client.sftpLs();
           setState(() {
             _result = result;
-            _array = array;
+            _array = array!;
           });
 
           print(await client.sftpMkdir("testsftp"));
@@ -145,7 +149,7 @@ pFkz72+8eA2cnbWUqHt9WqMUgUBYZTMESzQrTf7+q+0gWf49AZJ/QQ==
           print(await client.sftpRm("testupload"));
 
           print(await client.sftpUpload(
-            path: filePath,
+            path: (filePath)!,
             toPath: ".",
             callback: (progress) async {
               print(progress);
@@ -170,29 +174,29 @@ pFkz72+8eA2cnbWUqHt9WqMUgUBYZTMESzQrTf7+q+0gWf49AZJ/QQ==
         padding: EdgeInsets.all(5.0),
         child: ButtonBar(
           children: <Widget>[
-            FlatButton(
+            TextButton(
+              style: buttonStyle,
               child: Text(
                 'Test command',
                 style: TextStyle(color: Colors.white),
               ),
               onPressed: onClickCmd,
-              color: Colors.blue,
             ),
-            FlatButton(
+            TextButton(
+              style: buttonStyle,
               child: Text(
                 'Test shell',
                 style: TextStyle(color: Colors.white),
               ),
               onPressed: onClickShell,
-              color: Colors.blue,
             ),
-            FlatButton(
+            TextButton(
+              style: buttonStyle,
               child: Text(
                 'Test SFTP',
                 style: TextStyle(color: Colors.white),
               ),
               onPressed: onClickSFTP,
-              color: Colors.blue,
             ),
           ],
         ),
@@ -212,13 +216,13 @@ pFkz72+8eA2cnbWUqHt9WqMUgUBYZTMESzQrTf7+q+0gWf49AZJ/QQ==
                 "Please edit the connection setting in the source code before clicking the test buttons"),
             renderButtons(),
             Text(_result),
-            _array != null && _array.length > 0
+            _array.length > 0
                 ? Column(
-                    children: _array.map((f) {
-                      return Text(
-                          "${f["filename"]} ${f["isDirectory"]} ${f["modificationDate"]} ${f["lastAccess"]} ${f["fileSize"]} ${f["ownerUserID"]} ${f["ownerGroupID"]} ${f["permissions"]} ${f["flags"]}");
-                    }).toList(),
-                  )
+              children: _array.map((f) {
+                return Text(
+                    "${f["filename"]} ${f["isDirectory"]} ${f["modificationDate"]} ${f["lastAccess"]} ${f["fileSize"]} ${f["ownerUserID"]} ${f["ownerGroupID"]} ${f["permissions"]} ${f["flags"]}");
+              }).toList(),
+            )
                 : Container(),
           ],
         ),
