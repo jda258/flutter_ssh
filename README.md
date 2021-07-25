@@ -1,10 +1,10 @@
-# ssh
+# ssh2
 
 SSH and SFTP client for Flutter. Wraps iOS library NMSSH and Android library JSch. This is a fork of flutter_ssh: https://github.com/shaqian/flutter_ssh
 
 ## Installation
 
-Add `ssh` as a [dependency in your pubspec.yaml file](https://flutter.io/using-packages/).
+Add `ssh2` as a [dependency in your pubspec.yaml file](https://flutter.io/using-packages/).
 
 ## Known issue
 
