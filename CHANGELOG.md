@@ -1,3 +1,12 @@
+## 2.1.0
+
+* Nullsafe support
+* Dependency and compatibility updates
+* isConnected functionality added
+* Add doc comments to all public APIs
+* Fix issues to increase pub points
+* Change package name to ssh2
+
 ## 0.0.7
 
 * Moved getInputStream before channel connect on Android.

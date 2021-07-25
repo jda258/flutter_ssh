@@ -26,7 +26,7 @@ Add `ssh` as a [dependency in your pubspec.yaml file](https://flutter.io/using-p
 
 ### Create a client using password authentication
 ```dart
-import 'package:ssh/ssh.dart';
+import 'package:ssh2/ssh2.dart';
 
 var client = new SSHClient(
   host: "my.sshtest",
@@ -38,7 +38,7 @@ var client = new SSHClient(
 
 ### Create a client using public key authentication
 ```dart
-import 'package:ssh/ssh.dart';
+import 'package:ssh2/ssh2.dart';
 
 var client = new SSHClient(
   host: "my.sshtest",
