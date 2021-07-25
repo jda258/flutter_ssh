@@ -1,4 +1,4 @@
-package sq.flutter.ssh;
+package flutter.ssh2;
 
 import android.util.Log;
 import android.os.Handler;

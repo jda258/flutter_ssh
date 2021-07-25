@@ -1,4 +1,4 @@
-group 'sq.flutter.ssh'
+group 'flutter.ssh2'
 version '1.0-SNAPSHOT'
 
 buildscript {

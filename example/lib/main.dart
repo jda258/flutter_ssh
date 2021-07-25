@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
-import 'package:ssh/ssh.dart';
+import 'package:ssh2/ssh2.dart';
 import 'package:path_provider/path_provider.dart';
 
 void main() => runApp(new MyApp());
@@ -16,9 +16,8 @@ class _MyAppState extends State<MyApp> {
   String _result = '';
   List _array = [];
 
-  final ButtonStyle buttonStyle = TextButton.styleFrom(
-    backgroundColor: Colors.blue
-  );
+  final ButtonStyle buttonStyle =
+      TextButton.styleFrom(backgroundColor: Colors.blue);
 
   Future<void> onClickCmd() async {
     var client = new SSHClient(
@@ -100,7 +99,7 @@ pFkz72+8eA2cnbWUqHt9WqMUgUBYZTMESzQrTf7+q+0gWf49AZJ/QQ==
           print(await client.writeToShell("cat world\n"));
           new Future.delayed(
             const Duration(seconds: 5),
-                () async => await client.closeShell(),
+            () async => await client.closeShell(),
           );
         }
       }
@@ -218,11 +217,11 @@ pFkz72+8eA2cnbWUqHt9WqMUgUBYZTMESzQrTf7+q+0gWf49AZJ/QQ==
             Text(_result),
             _array.length > 0
                 ? Column(
-              children: _array.map((f) {
-                return Text(
-                    "${f["filename"]} ${f["isDirectory"]} ${f["modificationDate"]} ${f["lastAccess"]} ${f["fileSize"]} ${f["ownerUserID"]} ${f["ownerGroupID"]} ${f["permissions"]} ${f["flags"]}");
-              }).toList(),
-            )
+                    children: _array.map((f) {
+                      return Text(
+                          "${f["filename"]} ${f["isDirectory"]} ${f["modificationDate"]} ${f["lastAccess"]} ${f["fileSize"]} ${f["ownerUserID"]} ${f["ownerGroupID"]} ${f["permissions"]} ${f["flags"]}");
+                    }).toList(),
+                  )
                 : Container(),
           ],
         ),

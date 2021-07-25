@@ -1,5 +1,5 @@
-name: ssh_example
-description: Demonstrates how to use the ssh plugin.
+name: ssh2_example
+description: Demonstrates how to use the ssh2 plugin.
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `pub publish`. This is preferred for private packages.
@@ -33,7 +33,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  ssh:
+  ssh2:
     path: ../
 
   path_provider: ^2.0.1

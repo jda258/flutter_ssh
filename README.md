@@ -1,6 +1,6 @@
 # ssh
 
-SSH and SFTP client for Flutter. Wraps iOS library [NMSSH](https://github.com/NMSSH/NMSSH) and Android library [JSch](http://www.jcraft.com/jsch/).
+SSH and SFTP client for Flutter. Wraps iOS library NMSSH and Android library JSch. This is a fork of flutter_ssh: https://github.com/shaqian/flutter_ssh
 
 ## Installation
 
@@ -26,7 +26,7 @@ Add `ssh` as a [dependency in your pubspec.yaml file](https://flutter.io/using-p
 
 ### Create a client using password authentication
 ```dart
-import 'package:ssh/ssh.dart';
+import 'package:ssh2/ssh2.dart';
 
 var client = new SSHClient(
   host: "my.sshtest",
@@ -38,7 +38,7 @@ var client = new SSHClient(
 
 ### Create a client using public key authentication
 ```dart
-import 'package:ssh/ssh.dart';
+import 'package:ssh2/ssh2.dart';
 
 var client = new SSHClient(
   host: "my.sshtest",
@@ -176,4 +176,4 @@ await client.disconnectSFTP();
 
 ## Demo
 
-Refer to the [example](https://github.com/shaqian/flutter_ssh/tree/master/example).
+Refer to the [example](https://github.com/jda258/flutter_ssh/tree/master/example).
