@@ -1,6 +1,6 @@
 name: ssh2
 description: SSH and SFTP client for Flutter. Wraps iOS library NMSSH and Android library JSch.
-version: 2.1.0
+version: 2.1.2
 homepage: https://github.com/jda258/flutter_ssh2
 
 environment:

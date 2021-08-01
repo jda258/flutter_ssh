@@ -1,3 +1,9 @@
+## 2.1.2
+* Update gradle version to 7.0.2
+* Migrate Android plugin APIs to v2
+* Fix Podspec name
+* General code cleanup
+
 ## 2.1.1
 * Fix package name in readme
 
