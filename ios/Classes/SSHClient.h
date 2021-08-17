@@ -1,4 +1,4 @@
-#import <NMSSH/NMSSH.h>
+#import <GZ_NMSSH/NMSSH.h>
 
 @protocol SSHClientDelegate <NSObject>
 - (void) shellEvent:(NSString *)event withKey:(NSString *)key;

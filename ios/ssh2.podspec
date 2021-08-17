@@ -15,7 +15,7 @@ SSH and SFTP client for Flutter. Wraps iOS library NMSSH and Android library Jsc
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
   s.dependency 'Flutter'
-  s.dependency 'NMSSH'
+  s.dependency 'GZ-NMSSH', '~> 4.1.5'
   
   s.ios.deployment_target = '9.0'
 end
