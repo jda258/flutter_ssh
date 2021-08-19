@@ -1,5 +1,16 @@
+## 2.2.0
+* Change NMSSH to GZ-NMSSH: https://github.com/gaetanzanella/NMSSH/tree/feature/catalyst
+  * Updated libssh and libssl
+  * Supports more key types (ECDSA_256, ECDSA_384, ECDSA_521, ED25519)
+  * Fix issues with multiple threads
+* Change JSch to modernized fork: https://github.com/mwiede/jsch
+  * Suports more key types (rsa-sha2-256, rsa-sha2-512, curve25519-sha256, curve448-sha512, chacha20-poly1305@openssh.com) 
+  * More types will be supported once Android supports newer Java versions
+  * Miscellaneous bug fixes
+  * Deprecated older insecure key types
+* Update to latest Gradle version
+
 ## 2.1.2
-* Update gradle version to 7.0.2
 * Migrate Android plugin APIs to v2
 * Fix Podspec name
 * General code cleanup

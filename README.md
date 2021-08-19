@@ -2,25 +2,15 @@
 
 SSH and SFTP client for Flutter. Wraps iOS library NMSSH and Android library JSch. This is a fork of flutter_ssh: https://github.com/shaqian/flutter_ssh
 
+Wraps iOS library [NMSSH](https://github.com/gaetanzanella/NMSSH/tree/feature/catalyst) and Android library [JSch](https://github.com/mwiede/jsch).
+
 ## Installation
 
 Add `ssh2` as a [dependency in your pubspec.yaml file](https://flutter.io/using-packages/).
 
 ## Known issue
 
-- Platform exception in release mode for Android:
-
-  ```
-  PlatformException(connection_failure, java.lang.ClassNotFoundException: com.jcraft.jsch.jce.Random, null)
-  ```
-
-  There are 2 workarounds:
-  
-  - Disable shrink:
-
-    `flutter build apk --no-shrink`
-  
-  - Configure proguard-rules. Refer to [this comment](https://github.com/shaqian/flutter_ssh/issues/27#issuecomment-599180850) for details. 
+- Older Gradle versions are not supported due to incompatibilities with the newer JSch depencendy. This release was tested with Gradle version 7.0.2.
 
 ## Usage
 
