@@ -366,13 +366,37 @@ class SSHClient {
   /// ```
   Future<bool> isConnected() async {
     bool connected = false; // default to false
-    var result = await _channel.invokeMethod('isConnected', {
+    var result = await _channel.invokeMethod('flutterIsConnected', {
       "id": id,
     });
     if (result == "true") {
-      // results returns a string, therefor we need to check the string 'true'
+      // results returns a string, therefore we need to check the string 'true'
       connected = true;
     }
     return connected;
+  }
+
+  /// Gets the fingerprint of the remote host.
+  ///
+  /// ```dart
+  /// String result = await client.getHostFingerprint();
+  /// ```
+  Future<String> getHostFingerprint() async {
+    var result = await _channel.invokeMethod('getHostFingerprint', {
+      "id": id,
+    });
+    return result;
+  }
+
+  /// Gets the banner of the remote host.
+  ///
+  /// ```dart
+  /// String result = await client.getBanner();
+  /// ```
+  Future<String> getRemoteBanner() async {
+    var result = await _channel.invokeMethod('getRemoteBanner', {
+      "id": id,
+    });
+    return result;
   }
 }

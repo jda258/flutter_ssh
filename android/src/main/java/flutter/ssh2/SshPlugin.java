@@ -13,6 +13,7 @@ import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
 import com.jcraft.jsch.ChannelShell;
+import com.jcraft.jsch.HostKey;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
@@ -195,8 +196,14 @@ public class SshPlugin implements MethodCallHandler, StreamHandler, FlutterPlugi
       case "disconnect":
         disconnect((HashMap) call.arguments);
         break;
-      case "isConnected":
-        isConnected((HashMap) call.arguments, result);
+      case "flutterIsConnected":
+        flutterIsConnected((HashMap) call.arguments, result);
+        break;
+      case "getHostFingerprint":
+        getHostFingerprint((HashMap) call.arguments, result);
+        break;
+      case "getRemoteBanner":
+        getRemoteBanner((HashMap) call.arguments, result);
         break;
       default:
         result.notImplemented();
@@ -207,6 +214,7 @@ public class SshPlugin implements MethodCallHandler, StreamHandler, FlutterPlugi
   private static class SSHClient {
     Session _session;
     String _key;
+    String _hostKey;
     BufferedReader _bufferedReader;
     DataOutputStream _dataOutputStream;
     Channel _channel = null;
@@ -275,6 +283,11 @@ public class SshPlugin implements MethodCallHandler, StreamHandler, FlutterPlugi
           SSHClient client = new flutter.ssh2.SshPlugin.SSHClient();
           client._session = session;
           client._key = key;
+
+          HostKey hostKey = session.getHostKey();
+          client._hostKey = hostKey.getHost()+" "+
+                  hostKey.getType()+" "+
+                  hostKey.getFingerPrint(jsch);
           clientPool.put(key, client);
 
           Log.d(LOGTAG, "Session connected");
@@ -443,7 +456,6 @@ public class SshPlugin implements MethodCallHandler, StreamHandler, FlutterPlugi
         SSHClient client = clientPool.get(args.get("id"));
         ChannelSftp channelSftp = Objects.requireNonNull(client)._sftpSession;
 
-        @SuppressWarnings("unchecked")
         Vector<LsEntry> files = channelSftp.ls(Objects.requireNonNull(args.get("path")).toString());
         List<Map<String, Object>> response = new ArrayList<>();
 
@@ -601,7 +613,7 @@ public class SshPlugin implements MethodCallHandler, StreamHandler, FlutterPlugi
     client._session.disconnect();
   }
   
-  private void isConnected(final HashMap args, final Result result) {
+  private void flutterIsConnected(final HashMap args, final Result result) {
     SSHClient client = clientPool.get(args.get("id"));
     if (client == null) {
 		result.success("false");
@@ -609,7 +621,21 @@ public class SshPlugin implements MethodCallHandler, StreamHandler, FlutterPlugi
 		result.success("false");
     } else {
       result.success("true");
-    }   
+    }
+  }
+
+  private void getHostFingerprint(final HashMap args, final Result result) {
+    SSHClient client = clientPool.get(args.get("id"));
+    if (client != null) {
+      result.success(client._hostKey);
+    }
+  }
+
+  private void getRemoteBanner(final HashMap args, final Result result) {
+    SSHClient client = clientPool.get(args.get("id"));
+    if (client != null) {
+      result.success(client._session.getServerVersion());
+    }
   }
 
   private void sendEvent(Map<String, Object> event) {

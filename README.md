@@ -10,7 +10,7 @@ Add `ssh2` as a [dependency in your pubspec.yaml file](https://flutter.io/using-
 
 ## Known issue
 
-- Older Gradle versions are not supported due to incompatibilities with the newer JSch depencendy. This release was tested with Gradle version 7.0.2.
+- Older Gradle versions are not supported due to incompatibilities with the newer JSch dependency. This release was tested with Gradle version 7.0.2.
 
 ## Usage
 
@@ -71,6 +71,16 @@ await client.disconnect();
 ### Execute SSH command
 ```dart
 var result = await client.execute("ps");
+```
+
+### Get the fingerprint of the remote host
+```dart
+var result = await client.getHostFingerprint();
+```
+
+### Get the banner of the remote host
+```dart
+var result = await client.getBanner();
 ```
 
 ### Shell

@@ -1,3 +1,8 @@
+## 2.2.1
+* Fix bug in isConnected that affected sftp connections in iOS
+* Add function to get host fingerprint
+* Add function to get host banner
+
 ## 2.2.0
 * Change NMSSH to GZ-NMSSH: https://github.com/gaetanzanella/NMSSH/tree/feature/catalyst
   * Updated libssh and libssl

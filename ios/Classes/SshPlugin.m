@@ -39,8 +39,12 @@
            withUsername:args[@"username"]
           passwordOrKey:args[@"passwordOrKey"]
                 withKey:args[@"id"] result:result];
-  } else if ([@"isConnected" isEqualToString:call.method]) {
-    [self isConnected:args[@"id"] result:result];
+  } else if ([@"flutterIsConnected" isEqualToString:call.method]) {
+    [self flutterIsConnected:args[@"id"] result:result];
+  } else if ([@"getHostFingerprint" isEqualToString:call.method]) {
+    [self getHostFingerprint:args[@"id"] result:result];
+  } else if ([@"getRemoteBanner" isEqualToString:call.method]) {
+      [self getRemoteBanner:args[@"id"] result:result];
   } else if ([@"execute" isEqualToString:call.method]) {
     [self execute:args[@"cmd"] withKey:args[@"id"] result:result];
   } else if ([@"startShell" isEqualToString:call.method]) {
@@ -91,7 +95,7 @@
   return [[self clientPool] objectForKey:key];
 }
 
-- (BOOL)isConnected:(nonnull NSString*)key
+- (void)flutterIsConnected:(nonnull NSString*)key
              result:(FlutterResult)result {
   NSLog(@"Checking if client is connected");
   SSHClient* client = [self clientForKey:key];
@@ -102,12 +106,109 @@
     if (session && session.isConnected && session.isAuthorized) {
       NSLog(@"Session is connected and authorized");
       result(@"true");
-      return true;
     }
   }
   NSLog(@"Session not connected");
   result(@"false");
+}
+
+- (BOOL)isConnected:(nonnull NSString*)key
+             result:(FlutterResult)result {
+  NSLog(@"Checking if client is connected");
+  SSHClient* client = [self clientForKey:key];
+  if (client) {
+    NSLog(@"Client is not null");
+    NMSSHSession* session = client._session;
+
+    if (session && session.isConnected && session.isAuthorized) {
+      NSLog(@"Session is connected and authorized");
+      return true;
+    }
+  }
+  NSLog(@"Session not connected");
   return false;
+}
+
+- (void)getHostFingerprint:(nonnull NSString*)key
+             result:(FlutterResult)result {
+  NSLog(@"Getting host key");
+  SSHClient* client = [self clientForKey:key];
+  if (client) {
+    NSLog(@"Client is not null");
+    NMSSHSession* session = client._session;
+
+    if (session && session.isConnected) {
+      NSLog(@"Session is connected");
+      NMSSHSessionHash hashType = session.fingerprintHash;
+      NSString *fingerprint = [session fingerprint:hashType];
+      const char *hostkey;
+      size_t hklen;
+      int hktype;
+      NSString *hostname;  // Formatted as {host} or [{host}]:{port}.
+      int port = [session.port intValue];
+      NSString *keyType;
+
+      if (port == 22) {
+          hostname = session.host;
+      }
+      else {
+          hostname = [NSString stringWithFormat:@"[%@]:%d", session.host, port];
+      }
+
+      hostkey = libssh2_session_hostkey((__bridge LIBSSH2_SESSION *)(session), &hklen, &hktype);
+      if (!hostkey) {
+        NSLog(@"Failed to get host key.");
+      }
+
+      switch (hktype) {
+        case LIBSSH2_KNOWNHOST_KEY_SSHRSA:
+          keyType = @"ssh-rsa";
+          break;
+        case LIBSSH2_HOSTKEY_TYPE_DSS:
+          keyType = @"ssh-dsa";
+          break;
+        case LIBSSH2_HOSTKEY_TYPE_ECDSA_256:
+          keyType = @"ecdsa-sha2-nistp256";
+          break;
+        case LIBSSH2_HOSTKEY_TYPE_ECDSA_384:
+          keyType = @"ecdsa-sha2-nistp384";
+          break;
+        case LIBSSH2_HOSTKEY_TYPE_ECDSA_521:
+          keyType = @"ecdsa-sha2-nistp521";
+          break;
+        case LIBSSH2_HOSTKEY_TYPE_ED25519:
+          keyType = @"ssh-ed25519";
+          break;
+        case LIBSSH2_HOSTKEY_TYPE_UNKNOWN:
+          keyType = @"unknown";
+          break;
+      }
+
+      NSString* hostKey = [NSString stringWithFormat:@"%@ %@ %@", hostname, keyType, fingerprint];
+      result(hostKey);
+    }
+  }
+  NSLog(@"Session not connected");
+  result([FlutterError errorWithCode:@"connection_failure" message:@"No connected session" details:nil]);
+}
+
+
+- (void)getRemoteBanner:(nonnull NSString*)key
+             result:(FlutterResult)result {
+  NSLog(@"Getting host key");
+  SSHClient* client = [self clientForKey:key];
+  if (client) {
+    NSLog(@"Client is not null");
+    NMSSHSession* session = client._session;
+
+    if (session && session.isConnected) {
+      NSLog(@"Session is connected");
+        NSString* remoteBanner = [NSString stringWithFormat:@"%@", session.remoteBanner];
+      result(remoteBanner);
+    }
+  }
+  NSLog(@"Session not connected");
+  result([FlutterError errorWithCode:@"connection_failure" message:@"No connected session" details:nil]);
 }
 
 - (BOOL)isSFTPConnected:(NMSFTP *)sftpSesion
