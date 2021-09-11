@@ -3,7 +3,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'ssh2'
-  s.version          = '2.2.1'
+  s.version          = '2.2.2'
   s.summary          = 'SSH and SFTP client for Flutter.'
   s.description      = <<-DESC
 SSH and SFTP client for Flutter. Wraps iOS library NMSSH and Android library Jsch.

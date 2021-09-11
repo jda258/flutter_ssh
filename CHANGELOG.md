@@ -1,3 +1,9 @@
+## 2.2.2
+* Update mwiede jsch to version 0.1.66: https://github.com/mwiede/jsch/releases/tag/jsch-0.1.66
+  * Support for several more algorithms in Android, including ssh-ed25519
+* Bug fixes and improvements for example app
+* Bump kotlin version and targetSdkVersion for Android
+
 ## 2.2.1
 * Fix bug in isConnected that affected sftp connections in iOS
 * Add function to get host fingerprint

@@ -16,39 +16,11 @@ class _MyAppState extends State<MyApp> {
   String _result = '';
   List _array = [];
 
-  final ButtonStyle buttonStyle =
-      TextButton.styleFrom(backgroundColor: Colors.blue);
-
-  Future<void> onClickCmd() async {
-    var client = new SSHClient(
-      host: "hostname",
-      port: 22,
-      username: "username",
-      passwordOrKey: "password",
-    );
-
-    String result = '';
-    try {
-      result = (await client.connect())!;
-      if (result == "session_connected") result = (await client.execute("ps"))!;
-      client.disconnect();
-    } on PlatformException catch (e) {
-      print('Error: ${e.code}\nError Message: ${e.message}');
-    }
-
-    setState(() {
-      _result = result;
-      _array = [];
-    });
-  }
-
-  Future<void> onClickShell() async {
-    var client = new SSHClient(
-      host: "hostname",
-      port: 22,
-      username: "username",
-      passwordOrKey: {
-        "privateKey": """-----BEGIN RSA PRIVATE KEY-----
+  // ***** Change these settings for your environment *****
+  final String hostname = 'changeme';
+  final String username = 'changeme';
+  final String password = 'changeme';
+  final String privateKey = """-----BEGIN RSA PRIVATE KEY-----
 MIIEpAIBAAKCAQEA2DdFSeWG8wOHddRpOhf4FRqksJITr59iXdNrXq+n79QFN1g4
 bvRG9zCDmyLb8EF+gah78dpJsGZVIltmfYWpsk7ok9GT/foCB1d2E6DbEU6mBIPe
 OLxYOqyiea8mi7iGt9BvAB4Mj+v2LnhK4O2BB6PTU4KLjSgMdqtV/EGctLdK+JEU
@@ -74,96 +46,183 @@ VYm6XcNwPF/t5SM01ZuxH9NE2HZJ1cHcUGYQcUUJuqSkzsVK9j32E/akW9Cg3LVD
 D/fESTECgYBwWv9yveto6pP6/xbR9k/Jdgr+vXQ3BJVU3BOsD38SeSrZfMSNGqgx
 eiukCOIsRHYY7Qqi2vCJ62mwbHJ3RhSKKxcGpgzGX7KoGZS+bb5wb7RGNYK/mVaI
 pFkz72+8eA2cnbWUqHt9WqMUgUBYZTMESzQrTf7+q+0gWf49AZJ/QQ==
------END RSA PRIVATE KEY-----""",
+-----END RSA PRIVATE KEY-----""";
+  final String passphrase = "changeme"; // For password encrypted private key
+
+  final ButtonStyle buttonStyle =
+      TextButton.styleFrom(backgroundColor: Colors.blue);
+
+  void resetValues() {
+    setState(() {
+      _result = 'Loading';
+      _array = [];
+    });
+  }
+
+  Future<void> onClickCmd() async {
+    String result = '';
+
+    resetValues();
+
+    var client = new SSHClient(
+      host: hostname,
+      port: 22,
+      username: username,
+      passwordOrKey: password,
+    );
+
+    try {
+      result = await client.connect() ?? 'Null result';
+      if (result == "session_connected") result = await client.execute("ps") ?? 'Null result';
+      await client.disconnect();
+    } on PlatformException catch (e) {
+      String errorMessage = 'Error: ${e.code}\nError Message: ${e.message}';
+      result = errorMessage;
+      print(errorMessage);
+    }
+
+    setState(() {
+      _result = result;
+    });
+  }
+
+  Future<void> onClickShell() async {
+    String result = '';
+
+    resetValues();
+
+    var client = new SSHClient(
+      host: hostname,
+      port: 22,
+      username: username,
+      passwordOrKey: {
+        "privateKey": privateKey,
+        "passphrase": passphrase, // Remove line if key is not password protected
       },
     );
 
-    setState(() {
-      _result = "";
-      _array = [];
-    });
-
     try {
-      String result = (await client.connect())!;
+      result = await client.connect() ?? 'Null result';
+
       if (result == "session_connected") {
-        result = (await client.startShell(
+        result = await client.startShell(
             ptyType: "xterm",
             callback: (dynamic res) {
               setState(() {
-                _result += res;
+                result += res;
               });
-            }))!;
+            }) ?? 'Null result';
 
         if (result == "shell_started") {
           print(await client.writeToShell("echo hello > world\n"));
           print(await client.writeToShell("cat world\n"));
-          new Future.delayed(
-            const Duration(seconds: 5),
-            () async => await client.closeShell(),
-          );
+
         }
+
+        // Disconnect from SSH client
+        await client.disconnect();
       }
     } on PlatformException catch (e) {
-      print('Error: ${e.code}\nError Message: ${e.message}');
+      String errorMessage = 'Error: ${e.code}\nError Message: ${e.message}';
+      result += errorMessage;
+      print(errorMessage);
     }
+
+    setState(() {
+      _result = result;
+    });
   }
 
   Future<void> onClickSFTP() async {
+    String result = '';
+    List array = [];
+
+    resetValues();
+
     var client = new SSHClient(
-      host: "hostname",
+      host: hostname,
       port: 22,
-      username: "username",
-      passwordOrKey: "password",
+      username: username,
+      passwordOrKey: password,
     );
 
     try {
-      String result = (await client.connect())!;
+      result = await client.connect() ?? 'Null result';
       if (result == "session_connected") {
-        result = (await client.connectSFTP())!;
+        result = await client.connectSFTP() ?? 'Null result';
         if (result == "sftp_connected") {
-          var array = await client.sftpLs();
-          setState(() {
-            _result = result;
-            _array = array!;
-          });
+          array = await client.sftpLs() ?? [];
 
+          // Create a test directory
           print(await client.sftpMkdir("testsftp"));
+
+          // Rename the test directory
           print(await client.sftpRename(
             oldPath: "testsftp",
             newPath: "testsftprename",
           ));
+
+          // Remove the renamed test directory
           print(await client.sftpRmdir("testsftprename"));
 
+          // Get local device temp directory
           Directory tempDir = await getTemporaryDirectory();
           String tempPath = tempDir.path;
-          var filePath = await client.sftpDownload(
-            path: "testupload",
-            toPath: tempPath,
-            callback: (progress) async {
-              print(progress);
-              // if (progress == 20) await client.sftpCancelDownload();
-            },
-          );
 
-          print(await client.sftpRm("testupload"));
+          // Create local test file
+          final String fileName = 'ssh2_test_upload.txt';
+          final File file = File('$tempPath/$fileName');
+          await file.writeAsString('Testing file upload');
 
+          print('Local file path is ${file.path}');
+
+          // Upload test file
           print(await client.sftpUpload(
-            path: (filePath)!,
+            path: file.path,
             toPath: ".",
             callback: (progress) async {
               print(progress);
               // if (progress == 30) await client.sftpCancelUpload();
             },
-          ));
+          ) ?? 'Upload failed');
 
-          print(await client.disconnectSFTP());
+          // Download test file
+          print(await client.sftpDownload(
+            path: fileName,
+            toPath: tempPath,
+            callback: (progress) async {
+              print(progress);
+              // if (progress == 20) await client.sftpCancelDownload();
+            },
+          ) ?? 'Download failed');
 
-          client.disconnect();
+          // Delete the remote test file
+          print(await client.sftpRm(fileName));
+
+          // Delete the local test file
+          await file.delete();
+
+          // Disconnect from SFTP client - don't use
+          // There is a bug that prevents the ssh client connection from being
+          // closed after calling disconnectSFTP()
+          //print(await client.disconnectSFTP());
+
+          // Disconnect from SSH client
+          await client.disconnect();
         }
+
+
       }
     } on PlatformException catch (e) {
-      print('Error: ${e.code}\nError Message: ${e.message}');
+      String errorMessage = 'Error: ${e.code}\nError Message: ${e.message}';
+      result += errorMessage;
+      print(errorMessage);
     }
+
+    setState(() {
+      _result = result;
+      _array = array;
+    });
   }
 
   @override
@@ -205,14 +264,14 @@ pFkz72+8eA2cnbWUqHt9WqMUgUBYZTMESzQrTf7+q+0gWf49AZJ/QQ==
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('ssh plugin example app'),
+          title: const Text('ssh2 plugin example app'),
         ),
         body: ListView(
           shrinkWrap: true,
           padding: EdgeInsets.all(15.0),
           children: <Widget>[
             Text(
-                "Please edit the connection setting in the source code before clicking the test buttons"),
+                "Please edit the connection settings in the source code before clicking the test buttons"),
             renderButtons(),
             Text(_result),
             _array.length > 0
