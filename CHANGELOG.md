@@ -1,3 +1,6 @@
+## 2.2.3
+* Update podspec to exclude arm64 architecture for iphone simulator builds
+
 ## 2.2.2
 * Update mwiede jsch to version 0.1.66: https://github.com/mwiede/jsch/releases/tag/jsch-0.1.66
   * Support for several more algorithms in Android, including ssh-ed25519
