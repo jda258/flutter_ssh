@@ -155,6 +155,7 @@
           hostname = [NSString stringWithFormat:@"[%@]:%d", session.host, port];
       }
 
+      /*
       hostkey = libssh2_session_hostkey((__bridge LIBSSH2_SESSION *)(session), &hklen, &hktype);
       if (!hostkey) {
         NSLog(@"Failed to get host key.");
@@ -183,8 +184,9 @@
           keyType = @"unknown";
           break;
       }
+      */
 
-      NSString* hostKey = [NSString stringWithFormat:@"%@ %@ %@", hostname, keyType, fingerprint];
+      NSString* hostKey = [NSString stringWithFormat:@"%@ %@ %@", hostname, @"unknown", fingerprint];
       result(hostKey);
     }
   }
