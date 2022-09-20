@@ -604,12 +604,13 @@ public class SshPlugin implements MethodCallHandler, StreamHandler, FlutterPlugi
   }
 
   private void disconnect(final HashMap args) {
-    this.closeShell(args);
-    this.disconnectSFTP(args);
-
     SSHClient client = clientPool.get(args.get("id"));
     if (client == null)
       return;
+    
+    this.closeShell(args);
+    this.disconnectSFTP(args);
+    
     client._session.disconnect();
   }
   
