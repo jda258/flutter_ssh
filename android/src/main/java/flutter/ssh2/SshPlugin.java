@@ -276,6 +276,7 @@ public class SshPlugin implements MethodCallHandler, StreamHandler, FlutterPlugi
 
         Properties properties = new Properties();
         properties.setProperty("StrictHostKeyChecking", "no");
+	properties.setProperty("kex", "diffie-hellman-group1-sha1,diffie-hellman-group14-sha1,diffie-hellman-group-exchange-sha1,diffie-hellman-group-exchange-sha256");
         session.setConfig(properties);
         session.connect();
 
